@@ -101,7 +101,7 @@ model ItemImage {
 
 model Category {
   id     Int    @id @default(autoincrement())
-  title  String
+  title  String @unique
   items  Item[]
   user   User?  @relation(fields: [userId], references: [id])
   userId Int

@@ -68,7 +68,7 @@ export class AuthService {
     async generateVerifyUrl(hostUrl: string, userId: number): Promise<string> {
         const token = await this.jwtService.signAsync(
             { userId },
-            { expiresIn: '1m' },
+            { expiresIn: '5m' },
         );
         const user = await this.prismaService.user.findUnique({
             where: {
