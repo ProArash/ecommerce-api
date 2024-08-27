@@ -4,6 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
+    app.enableCors();
     const port = process.env.PORT || 3000;
     const config = new DocumentBuilder()
         .addBearerAuth()
