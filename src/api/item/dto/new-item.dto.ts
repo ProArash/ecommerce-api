@@ -17,4 +17,8 @@ export class NewItemDto {
     @ApiProperty()
     @IsNotEmpty()
     categoryId: number;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    brandId: number;
 }

@@ -25,9 +25,9 @@ enum UserStatus {
 }
 
 enum UserRoles {
-  USER
   SUPPORT
   ADMIN
+  USER
 }
 
 model User {
@@ -38,12 +38,12 @@ model User {
   comments   Comment[]
   cart       Cart?
   invoices   Invoice[]
-  roles      UserRoles[]
   items      Item[]
   categories Category[]
   status     UserStatus  @default(NOT_VERIFIED)
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+  roles      UserRoles[]
 }
 
 model Comment {
@@ -86,8 +86,16 @@ model Item {
   category   Category?   @relation(fields: [categoryId], references: [id])
   categoryId Int
   comments   Comment[]
+  brand      Brand       @relation(fields: [brandId], references: [id])
+  brandId    Int
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+}
+
+model Brand {
+  id    Int    @id @default(autoincrement())
+  title String
+  items Item[]
 }
 
 model ItemImage {

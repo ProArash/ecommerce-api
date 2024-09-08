@@ -24,7 +24,11 @@ import * as path from 'path';
             }),
         }),
         ServeStaticModule.forRootAsync({
-            imports: [ConfigModule],
+            imports: [
+                ConfigModule.forRoot({
+                    isGlobal: true,
+                }),
+            ],
             inject: [ConfigService],
             useFactory: (configService: ConfigService) => [
                 {

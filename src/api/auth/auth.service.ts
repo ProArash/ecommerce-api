@@ -2,6 +2,7 @@ import {
     ConflictException,
     ForbiddenException,
     Injectable,
+    UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { SignInDto } from './dto/sign-in.dto';
@@ -10,6 +11,7 @@ import { SignUpDto } from './dto/sign-up.dto';
 import { compare, hash } from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
+import { UserPayload } from '../../utils/Payload';
 
 @Injectable()
 export class AuthService {
@@ -19,7 +21,9 @@ export class AuthService {
         private configService: ConfigService,
     ) {}
 
-    async signIn(signDto: SignInDto): Promise<{ access_token: string }> {
+    async signIn(
+        signDto: SignInDto,
+    ): Promise<{ access_token: string; refresh_token: string }> {
         const user = await this.prismaService.user.findUnique({
             where: {
                 email: signDto.email,
@@ -28,6 +32,7 @@ export class AuthService {
         if (user && (await compare(signDto.password, user.password))) {
             return {
                 access_token: await this.jwtService.signAsync({ ...user }),
+                refresh_token: await this.generateRefreshToken({ ...user }),
             };
         } else {
             throw new ForbiddenException('Invalid email or password.');
@@ -37,7 +42,7 @@ export class AuthService {
     async signUp(
         signDto: SignUpDto,
         hostUrl: string,
-    ): Promise<{ access_token: string }> {
+    ): Promise<{ access_token: string; refresh_token: string }> {
         let user = await this.prismaService.user.findUnique({
             where: {
                 email: signDto.email,
@@ -62,7 +67,32 @@ export class AuthService {
 
         return {
             access_token: await this.jwtService.signAsync({ ...user }),
+            refresh_token: await this.generateRefreshToken({ ...user }),
         };
+    }
+
+    async generateRefreshToken(payload: UserPayload): Promise<string> {
+        return await this.jwtService.signAsync(payload, { expiresIn: '10d' });
+    }
+
+    async refresh(refreshToken: string): Promise<{ access_token: string }> {
+        try {
+            const result: UserPayload =
+                await this.jwtService.verifyAsync(refreshToken);
+            const payload: UserPayload = {
+                email: result.email,
+                id: result.id,
+                name: result.name,
+            };
+            return {
+                access_token: await this.jwtService.signAsync(payload),
+            };
+        } catch (error) {
+            console.log(error);
+            throw new UnauthorizedException(
+                'Invalid or expired refresh token,  sign in again.',
+            );
+        }
     }
 
     async generateVerifyUrl(hostUrl: string, userId: number): Promise<string> {

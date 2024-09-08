@@ -19,6 +19,7 @@ export class ItemService {
                 price: Number(itemDto.price),
                 categoryId: Number(itemDto.categoryId),
                 userId: Number(userId),
+                brandId: Number(itemDto.brandId),
                 images: {
                     createMany: {
                         data: files.map((url) => ({
